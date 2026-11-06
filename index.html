@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id" class="is-booting">
+<html lang="id" class="is-booting is-immersive">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,6 +17,18 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 </head>
 <body>
+  <section class="immersive-gate" id="immersive-gate" aria-label="ZERO LIMITS immersive intro">
+    <canvas id="immersive-scene" aria-hidden="true"></canvas>
+    <div class="immersive-topline"><span>ZERO LIMITS / 00</span><span>INDEPENDENT SYSTEMS UNIT</span></div>
+    <div class="immersive-copy">
+      <p class="immersive-kicker">AUTONOMOUS ARCHITECTURE / 2026</p>
+      <h1>ZERO <span>LIMITS</span></h1>
+      <p class="immersive-note">A living portfolio for systems that keep moving after the signal fades.</p>
+    </div>
+    <button class="immersive-enter" type="button">Enter system <span>↘</span></button>
+    <div class="immersive-bottomline"><span>DRAG TO EXPLORE</span><span>SCROLL / TAP TO ENTER</span></div>
+  </section>
+
   <canvas id="particle-field" aria-hidden="true"></canvas>
   <canvas id="boot-cursors" aria-hidden="true"></canvas>
   <canvas id="brush-cursor" aria-hidden="true"></canvas>

@@ -138,6 +138,179 @@
     draw();
   }
 
+  const initImmersiveGate = () => {
+    const gate = document.querySelector('#immersive-gate');
+    const scene = document.querySelector('#immersive-scene');
+    const enterButton = gate?.querySelector('.immersive-enter');
+    const root = document.documentElement;
+    if (!gate || !scene) {
+      root.classList.remove('is-immersive');
+      return;
+    }
+
+    const sceneContext = scene.getContext?.('2d', { alpha: true });
+    if (!sceneContext) {
+      root.classList.remove('is-immersive');
+      gate.classList.add('is-leaving');
+      return;
+    }
+
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    let width = 0;
+    let height = 0;
+    let pixelRatio = 1;
+    let frameId = 0;
+    let opened = false;
+    let pressed = false;
+    let moved = false;
+    let lastPoint = null;
+    let target = { x: .5, y: .48 };
+    let current = { x: .5, y: .48 };
+
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    const resize = () => {
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      scene.width = Math.floor(width * pixelRatio);
+      scene.height = Math.floor(height * pixelRatio);
+      scene.style.width = `${width}px`;
+      scene.style.height = `${height}px`;
+      sceneContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    };
+
+    const drawGrid = (cx, cy, radius, tilt) => {
+      sceneContext.save();
+      sceneContext.translate(cx, cy);
+      sceneContext.rotate(tilt * .08);
+      sceneContext.scale(1, .68);
+      sceneContext.lineWidth = 1;
+      for (let index = 0; index < 7; index += 1) {
+        const y = -radius * .72 + index * radius * .24;
+        const halfWidth = Math.sqrt(Math.max(0, radius * radius - y * y));
+        sceneContext.strokeStyle = `rgba(242, 241, 237, ${.08 + index * .012})`;
+        sceneContext.beginPath();
+        sceneContext.moveTo(-halfWidth, y);
+        sceneContext.lineTo(halfWidth, y);
+        sceneContext.stroke();
+      }
+      for (let index = -3; index <= 3; index += 1) {
+        sceneContext.strokeStyle = `rgba(125, 232, 237, ${index === 0 ? .3 : .09})`;
+        sceneContext.beginPath();
+        sceneContext.ellipse(index * radius * .22, 0, radius * (.08 + Math.abs(index) * .06), radius, 0, 0, Math.PI * 2);
+        sceneContext.stroke();
+      }
+      sceneContext.restore();
+    };
+
+    const draw = (now) => {
+      sceneContext.clearRect(0, 0, width, height);
+      current.x += (target.x - current.x) * .08;
+      current.y += (target.y - current.y) * .08;
+      const tilt = current.x - .5;
+      const cx = width * (.5 + tilt * .08);
+      const cy = height * (.46 + (current.y - .5) * .04);
+      const radius = Math.min(width, height) * (.23 + Math.sin(now * .0006) * .008);
+
+      const glow = sceneContext.createRadialGradient(cx, cy, radius * .08, cx, cy, radius * 1.8);
+      glow.addColorStop(0, 'rgba(255, 125, 108, .2)');
+      glow.addColorStop(.42, 'rgba(79, 44, 155, .1)');
+      glow.addColorStop(1, 'rgba(8, 6, 11, 0)');
+      sceneContext.fillStyle = glow;
+      sceneContext.beginPath();
+      sceneContext.arc(cx, cy, radius * 1.8, 0, Math.PI * 2);
+      sceneContext.fill();
+
+      sceneContext.save();
+      sceneContext.translate(cx, cy + radius * .18);
+      sceneContext.scale(1, .68);
+      sceneContext.strokeStyle = 'rgba(242, 241, 237, .72)';
+      sceneContext.lineWidth = 1.2;
+      sceneContext.beginPath();
+      sceneContext.arc(0, 0, radius, Math.PI, Math.PI * 2);
+      sceneContext.stroke();
+      sceneContext.strokeStyle = 'rgba(255, 69, 84, .65)';
+      sceneContext.beginPath();
+      sceneContext.arc(0, 0, radius * .72, Math.PI, Math.PI * 2);
+      sceneContext.stroke();
+      sceneContext.restore();
+      drawGrid(cx, cy, radius, tilt);
+
+      const scanY = cy + Math.sin(now * .0012) * radius * .58;
+      sceneContext.strokeStyle = 'rgba(125, 232, 237, .58)';
+      sceneContext.lineWidth = 1;
+      sceneContext.beginPath();
+      sceneContext.moveTo(cx - radius * .78, scanY);
+      sceneContext.lineTo(cx + radius * .78, scanY);
+      sceneContext.stroke();
+
+      const reticleX = width * current.x;
+      const reticleY = height * current.y;
+      sceneContext.strokeStyle = 'rgba(255, 125, 108, .82)';
+      sceneContext.beginPath();
+      sceneContext.moveTo(reticleX - 11, reticleY);
+      sceneContext.lineTo(reticleX + 11, reticleY);
+      sceneContext.moveTo(reticleX, reticleY - 11);
+      sceneContext.lineTo(reticleX, reticleY + 11);
+      sceneContext.stroke();
+      sceneContext.fillStyle = 'rgba(255, 125, 108, .9)';
+      sceneContext.beginPath();
+      sceneContext.arc(reticleX, reticleY, 2.5, 0, Math.PI * 2);
+      sceneContext.fill();
+
+      if (!opened && !reducedMotion) frameId = requestAnimationFrame(draw);
+    };
+
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      gate.setAttribute('aria-hidden', 'true');
+      gate.classList.add('is-leaving');
+      root.classList.remove('is-immersive');
+      document.dispatchEvent?.(new Event('immersive:enter'));
+      if (frameId) cancelAnimationFrame(frameId);
+      window.setTimeout?.(() => { gate.style.display = 'none'; }, 900);
+    };
+
+    const updatePointer = (event) => {
+      if (opened) return;
+      const point = { x: event.clientX, y: event.clientY };
+      target = { x: clamp(point.x / Math.max(width, 1), 0, 1), y: clamp(point.y / Math.max(height, 1), 0, 1) };
+      if (pressed && lastPoint && Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y) > 12) moved = true;
+      lastPoint = point;
+      if (event.pointerType === 'touch' && moved) open();
+    };
+
+    const pointerDown = (event) => {
+      pressed = true;
+      moved = false;
+      lastPoint = { x: event.clientX, y: event.clientY };
+      updatePointer(event);
+    };
+    const pointerUp = (event) => {
+      updatePointer(event);
+      if (pressed && !moved && event.pointerType !== 'touch') open();
+      pressed = false;
+      lastPoint = null;
+    };
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+    gate.addEventListener('pointermove', updatePointer, { passive: true });
+    gate.addEventListener('pointerdown', pointerDown, { passive: true });
+    gate.addEventListener('pointerup', pointerUp, { passive: true });
+    gate.addEventListener('pointercancel', () => { pressed = false; lastPoint = null; }, { passive: true });
+    gate.addEventListener('wheel', (event) => { if (Math.abs(event.deltaY) > 3) open(); }, { passive: true });
+    gate.addEventListener('click', (event) => { if (event.target === gate) open(); });
+    enterButton?.addEventListener('click', open);
+    document.addEventListener('keydown', (event) => {
+      if (!opened && (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape')) open();
+    });
+    draw(performance.now());
+  };
+
+  initImmersiveGate();
+
   const bootCursorCanvas = document.querySelector('#boot-cursors');
   const initSequentialReveal = () => {
     const root = document.documentElement;
@@ -404,6 +577,7 @@
       manualBox = null;
     };
 
+    document.addEventListener('immersive:enter', finish, { once: true });
     resize();
     window.addEventListener('resize', resize, { passive: true });
     window.addEventListener('pointerdown', pointerDown, { passive: true });
