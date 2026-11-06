@@ -34,8 +34,30 @@ a { color: inherit; text-decoration: none; }
 button, input, textarea { font: inherit; }
 button { color: inherit; }
 
-#particle-field, .noise { position: fixed; inset: 0; pointer-events: none; }
+#particle-field, #brush-cursor, .noise { position: fixed; inset: 0; pointer-events: none; }
 #particle-field { z-index: 0; opacity: .72; }
+#brush-cursor {
+  z-index: 30;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity .25s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+  a, button, input, textarea, [role="button"] { cursor: none; }
+}
+.brush-hover-target {
+  transition: filter .25s ease, text-shadow .25s ease, box-shadow .25s ease;
+}
+.brush-hover-target.brush-is-hovered {
+  filter: brightness(1.08);
+  text-shadow: 0 0 16px rgba(255, 125, 108, .24);
+}
+.system-card.brush-is-hovered, .project-card.brush-is-hovered {
+  box-shadow: 0 0 0 1px rgba(255, 69, 84, .18), 0 15px 45px rgba(0, 0, 0, .2);
+}
 .noise {
   z-index: 20;
   opacity: .035;
@@ -252,6 +274,6 @@ h2 span { color: var(--muted-2); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  #particle-field { display: none; }
+  #particle-field, #brush-cursor { display: none; }
   .reveal { opacity: 1; transform: none; }
 }
