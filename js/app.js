@@ -138,257 +138,269 @@
     draw();
   }
 
-  const bootRevealCanvas = document.querySelector('#boot-reveal');
   const bootCursorCanvas = document.querySelector('#boot-cursors');
-  const initBootReveal = () => {
+  const initSequentialReveal = () => {
     const root = document.documentElement;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (!bootRevealCanvas || !bootCursorCanvas || reducedMotion) {
+    const sequenceSelectors = [
+      '.site-header',
+      '.hero-word',
+      '.hero-kicker',
+      '.hero-copy .micro-label',
+      '.hero-copy h1',
+      '.hero-copy .hero-intro',
+      '.hero-copy .hero-actions',
+      '.hero-copy .hero-metrics',
+      '.hero-visual',
+      '.scroll-cue',
+      '#about .section-index',
+      '#about .section-heading',
+      '#about .about-copy',
+      '#about .principles',
+      '#systems .section-index',
+      '#systems .section-heading',
+      '#systems .system-grid',
+      '#systems .system-card',
+      '#deployments .section-index',
+      '#deployments .section-heading',
+      '#deployments .project-list',
+      '#deployments .project-card',
+      '#terminal',
+      '#contact .section-index',
+      '#contact .section-heading',
+      '#contact .contact-form',
+      '.site-footer'
+    ];
+    const targets = [];
+    const seen = new Set();
+    sequenceSelectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((target) => {
+        if (!seen.has(target)) {
+          seen.add(target);
+          targets.push(target);
+          target.classList.add('boot-item');
+        }
+      });
+    });
+
+    const showEverything = () => {
+      targets.forEach((target) => target.classList.add('boot-visible'));
       root.classList.remove('is-booting');
-      bootRevealCanvas?.classList.add('is-complete');
       bootCursorCanvas?.classList.add('is-complete');
-      return;
-    }
-
-    const revealContext = bootRevealCanvas.getContext?.('2d', { alpha: true });
-    const cursorContext = bootCursorCanvas.getContext?.('2d', { alpha: true });
-    if (!revealContext || !cursorContext) {
-      root.classList.remove('is-booting');
-      return;
-    }
-
-    const colors = {
-      hot: [255, 69, 84],
-      coral: [255, 125, 108],
-      cyan: [125, 232, 237]
     };
-    const cursorCount = 7;
-    const bootDuration = 4800;
-    const cursors = Array.from({ length: cursorCount }, (_, index) => ({
-      index,
-      phase: index * 1.47 + Math.random() * .35,
-      speed: .00035 + index * .000035,
-      amplitudeX: .27 + (index % 3) * .035,
-      amplitudeY: .25 + (index % 2) * .045,
-      offsetX: .5 + ((index % 3) - 1) * .08,
-      offsetY: .48 + ((index % 4) - 1.5) * .045,
-      startAt: index * 170,
-      current: null,
-      previous: null,
+    if (!bootCursorCanvas || reducedMotion || !targets.length) {
+      showEverything();
+      return;
+    }
+
+    const cursorContext = bootCursorCanvas.getContext?.('2d', { alpha: true });
+    if (!cursorContext) {
+      showEverything();
+      return;
+    }
+
+    const colors = { coral: [255, 125, 108], cyan: [125, 232, 237] };
+    const cursorCount = 4;
+    const startDelay = 360;
+    const revealStep = 150;
+    const finishAt = startDelay + targets.length * revealStep + 900;
+    const revealEvents = targets.map((target, index) => ({ target, at: startDelay + index * revealStep }));
+    const tracks = Array.from({ length: cursorCount }, (_, slot) => ({
+      phase: slot * 1.9 + Math.random(),
+      slot,
       trail: [],
-      color: index % 5 === 0 ? colors.cyan : colors.coral
+      previous: null,
+      events: revealEvents.filter((_, index) => index % cursorCount === slot)
     }));
     let width = 0;
     let height = 0;
     let pixelRatio = 1;
-    let frameId = 0;
     let startedAt = performance.now();
-    let previousFrame = startedAt;
+    let frameId = 0;
     let completed = false;
     let manualBox = null;
+    let nextReveal = 0;
 
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
     const rgba = (rgb, alpha) => `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
-    const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const ease = (value) => value * value * (3 - 2 * value);
 
     const resize = () => {
       pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
-      [bootRevealCanvas, bootCursorCanvas].forEach((canvas) => {
-        canvas.width = Math.floor(width * pixelRatio);
-        canvas.height = Math.floor(height * pixelRatio);
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-      });
-      revealContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      bootCursorCanvas.width = Math.floor(width * pixelRatio);
+      bootCursorCanvas.height = Math.floor(height * pixelRatio);
+      bootCursorCanvas.style.width = `${width}px`;
+      bootCursorCanvas.style.height = `${height}px`;
       cursorContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      revealContext.globalCompositeOperation = 'source-over';
-      revealContext.fillStyle = '#08060b';
-      revealContext.fillRect(0, 0, width, height);
     };
 
-    const revealStroke = (from, to, widthHint, alpha = .8) => {
-      if (!from || !to || distance(from, to) < .4) return;
-      const strokeWidth = clamp(widthHint, 58, 180);
-      revealContext.save();
-      revealContext.globalCompositeOperation = 'destination-out';
-      revealContext.lineCap = 'round';
-      revealContext.lineJoin = 'round';
-      revealContext.globalAlpha = alpha * .35;
-      revealContext.filter = 'blur(8px)';
-      revealContext.strokeStyle = '#000';
-      revealContext.lineWidth = strokeWidth * 1.6;
-      revealContext.beginPath();
-      revealContext.moveTo(from.x, from.y);
-      revealContext.lineTo(to.x, to.y);
-      revealContext.stroke();
-      revealContext.filter = 'none';
-      revealContext.globalAlpha = alpha;
-      revealContext.lineWidth = strokeWidth;
-      revealContext.beginPath();
-      revealContext.moveTo(from.x, from.y);
-      revealContext.lineTo(to.x, to.y);
-      revealContext.stroke();
-
-      const edge = revealContext.createRadialGradient(to.x, to.y, 0, to.x, to.y, strokeWidth * .9);
-      edge.addColorStop(0, 'rgba(0, 0, 0, .7)');
-      edge.addColorStop(.55, 'rgba(0, 0, 0, .24)');
-      edge.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      revealContext.fillStyle = edge;
-      revealContext.beginPath();
-      revealContext.arc(to.x, to.y, strokeWidth * .9, 0, Math.PI * 2);
-      revealContext.fill();
-      revealContext.restore();
-    };
-
-    const revealRectangle = (box) => {
-      if (!box) return;
-      const x = Math.min(box.start.x, box.current.x);
-      const y = Math.min(box.start.y, box.current.y);
-      const boxWidth = Math.max(8, Math.abs(box.current.x - box.start.x));
-      const boxHeight = Math.max(8, Math.abs(box.current.y - box.start.y));
-      revealContext.save();
-      revealContext.globalCompositeOperation = 'destination-out';
-      revealContext.filter = 'blur(9px)';
-      revealContext.globalAlpha = .45;
-      revealContext.fillStyle = '#000';
-      revealContext.fillRect(x - 8, y - 8, boxWidth + 16, boxHeight + 16);
-      revealContext.filter = 'none';
-      revealContext.globalAlpha = .92;
-      revealContext.fillRect(x, y, boxWidth, boxHeight);
-      revealContext.restore();
-    };
-
-    const cursorPosition = (cursor, elapsed) => {
-      const time = Math.max(0, elapsed - cursor.startAt);
-      const phase = cursor.phase + time * cursor.speed;
+    const targetPoint = (target) => {
+      const rect = target.getBoundingClientRect();
       return {
-        x: width * (cursor.offsetX + Math.sin(phase * 1.17) * cursor.amplitudeX),
-        y: height * (cursor.offsetY + Math.cos(phase * .83) * cursor.amplitudeY)
+        x: clamp(rect.left + rect.width * .5, 18, Math.max(18, width - 18)),
+        y: clamp(rect.top + Math.min(rect.height * .35, 70), 76, Math.max(76, height - 24))
       };
     };
 
-    const drawSyntheticCursor = (cursor, now, elapsed) => {
-      if (elapsed < cursor.startAt) return;
-      const current = cursorPosition(cursor, elapsed);
-      const previous = cursor.current;
-      cursor.previous = previous;
-      cursor.current = current;
-      if (previous) {
-        const velocity = distance(previous, current);
-        revealStroke(previous, current, 72 + velocity * 5.5, .68);
-      }
-      cursor.trail.push(current);
-      if (cursor.trail.length > 18) cursor.trail.shift();
+    const revealTarget = (target) => {
+      if (target.classList.contains('boot-visible')) return;
+      target.classList.add('boot-visible', 'boot-targeting');
+      window.setTimeout?.(() => target.classList.remove('boot-targeting'), 520);
+    };
 
-      if (cursor.trail.length > 1) {
+    const selectionBox = () => {
+      if (!manualBox) return null;
+      return {
+        left: Math.min(manualBox.start.x, manualBox.current.x),
+        top: Math.min(manualBox.start.y, manualBox.current.y),
+        right: Math.max(manualBox.start.x, manualBox.current.x),
+        bottom: Math.max(manualBox.start.y, manualBox.current.y)
+      };
+    };
+
+    const revealTargetsInsideBox = () => {
+      const box = selectionBox();
+      if (!box) return;
+      targets.forEach((target) => {
+        const rect = target.getBoundingClientRect();
+        const intersects = rect.right >= box.left && rect.left <= box.right && rect.bottom >= box.top && rect.top <= box.bottom;
+        if (intersects) revealTarget(target);
+      });
+    };
+
+    const drawManualBox = () => {
+      const box = selectionBox();
+      if (!box) return;
+      cursorContext.save();
+      cursorContext.globalCompositeOperation = 'lighter';
+      cursorContext.fillStyle = 'rgba(255, 69, 84, .05)';
+      cursorContext.strokeStyle = rgba(colors.coral, .9);
+      cursorContext.lineWidth = 1;
+      cursorContext.setLineDash?.([5, 6]);
+      cursorContext.fillRect(box.left, box.top, Math.max(8, box.right - box.left), Math.max(8, box.bottom - box.top));
+      cursorContext.strokeRect(box.left, box.top, Math.max(8, box.right - box.left), Math.max(8, box.bottom - box.top));
+      cursorContext.setLineDash?.([]);
+      cursorContext.restore();
+    };
+
+    const trackPoint = (track, elapsed) => {
+      const first = track.events[0];
+      if (!first) return null;
+      const seed = { x: width * (.12 + track.slot * .24), y: height * (.18 + track.slot * .08) };
+      if (elapsed < first.at) {
+        const progress = ease(clamp(elapsed / first.at, 0, 1));
+        const target = targetPoint(first.target);
+        return { x: seed.x + (target.x - seed.x) * progress, y: seed.y + (target.y - seed.y) * progress };
+      }
+      for (let index = 0; index < track.events.length - 1; index += 1) {
+        const current = track.events[index];
+        const next = track.events[index + 1];
+        if (elapsed < next.at) {
+          const from = targetPoint(current.target);
+          const to = targetPoint(next.target);
+          const progress = ease(clamp((elapsed - current.at) / (next.at - current.at), 0, 1));
+          return { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress };
+        }
+      }
+      const last = targetPoint(track.events[track.events.length - 1].target);
+      return {
+        x: clamp(last.x + Math.sin(elapsed * .004 + track.phase) * 34, 18, width - 18),
+        y: clamp(last.y + Math.cos(elapsed * .003 + track.phase) * 24, 76, height - 24)
+      };
+    };
+
+    const drawTrack = (track, now, elapsed) => {
+      const current = trackPoint(track, elapsed);
+      if (!current) return;
+      if (track.previous) {
         cursorContext.save();
         cursorContext.globalCompositeOperation = 'lighter';
         cursorContext.lineCap = 'round';
-        cursorContext.lineJoin = 'round';
         cursorContext.beginPath();
-        cursorContext.moveTo(cursor.trail[0].x, cursor.trail[0].y);
-        cursor.trail.slice(1).forEach((point) => cursorContext.lineTo(point.x, point.y));
-        const trailGradient = cursorContext.createLinearGradient(
-          cursor.trail[0].x, cursor.trail[0].y,
-          current.x, current.y
-        );
-        trailGradient.addColorStop(0, rgba(cursor.color, 0));
-        trailGradient.addColorStop(.62, rgba(cursor.color, .16));
-        trailGradient.addColorStop(1, rgba(cursor.color, .8));
-        cursorContext.strokeStyle = trailGradient;
+        cursorContext.moveTo(track.previous.x, track.previous.y);
+        cursorContext.lineTo(current.x, current.y);
+        cursorContext.strokeStyle = rgba(track.slot === 1 ? colors.cyan : colors.coral, .38);
         cursorContext.lineWidth = 1.2;
         cursorContext.stroke();
         cursorContext.restore();
       }
+      track.previous = current;
+      track.trail.push(current);
+      if (track.trail.length > 14) track.trail.shift();
+      if (track.trail.length > 1) {
+        cursorContext.save();
+        cursorContext.globalCompositeOperation = 'lighter';
+        cursorContext.globalAlpha = .65;
+        cursorContext.beginPath();
+        cursorContext.moveTo(track.trail[0].x, track.trail[0].y);
+        track.trail.slice(1).forEach((point) => cursorContext.lineTo(point.x, point.y));
+        cursorContext.strokeStyle = rgba(track.slot === 1 ? colors.cyan : colors.coral, .5);
+        cursorContext.lineWidth = 1;
+        cursorContext.lineCap = 'round';
+        cursorContext.stroke();
+        cursorContext.restore();
+      }
 
-      const angle = previous ? Math.atan2(current.y - previous.y, current.x - previous.x) : -Math.PI / 4;
-      const size = 9 + Math.sin(now * .01 + cursor.phase) * 1.5;
+      const angle = track.previous ? Math.atan2(current.y - track.previous.y, current.x - track.previous.x) : -Math.PI / 4;
+      const size = 8 + Math.sin(now * .01 + track.phase) * 1.3;
+      const color = track.slot === 1 ? colors.cyan : colors.coral;
       cursorContext.save();
       cursorContext.translate(current.x, current.y);
       cursorContext.rotate(angle + Math.PI / 2);
       cursorContext.globalCompositeOperation = 'lighter';
-      cursorContext.shadowBlur = 14;
-      cursorContext.shadowColor = rgba(cursor.color, .65);
-      cursorContext.fillStyle = rgba(cursor.color, .95);
+      cursorContext.shadowBlur = 16;
+      cursorContext.shadowColor = rgba(color, .7);
+      cursorContext.fillStyle = rgba(color, .96);
       cursorContext.beginPath();
       cursorContext.moveTo(0, -size);
-      cursorContext.lineTo(size * .65, size * .8);
+      cursorContext.lineTo(size * .7, size * .8);
       cursorContext.lineTo(0, size * .3);
-      cursorContext.lineTo(-size * .65, size * .8);
+      cursorContext.lineTo(-size * .7, size * .8);
       cursorContext.closePath();
       cursorContext.fill();
-      cursorContext.restore();
-    };
-
-    const drawManualBox = () => {
-      if (!manualBox) return;
-      const x = Math.min(manualBox.start.x, manualBox.current.x);
-      const y = Math.min(manualBox.start.y, manualBox.current.y);
-      const boxWidth = Math.max(8, Math.abs(manualBox.current.x - manualBox.start.x));
-      const boxHeight = Math.max(8, Math.abs(manualBox.current.y - manualBox.start.y));
-      cursorContext.save();
-      cursorContext.globalCompositeOperation = 'lighter';
-      cursorContext.fillStyle = 'rgba(255, 69, 84, .05)';
-      cursorContext.strokeStyle = 'rgba(255, 125, 108, .92)';
-      cursorContext.lineWidth = 1;
-      cursorContext.setLineDash?.([5, 6]);
-      cursorContext.fillRect(x, y, boxWidth, boxHeight);
-      cursorContext.strokeRect(x, y, boxWidth, boxHeight);
-      cursorContext.setLineDash?.([]);
       cursorContext.restore();
     };
 
     const finish = () => {
       if (completed) return;
       completed = true;
-      root.classList.remove('is-booting');
-      bootRevealCanvas.classList.add('is-complete');
-      bootCursorCanvas.classList.add('is-complete');
+      showEverything();
       if (frameId) cancelAnimationFrame(frameId);
-      window.setTimeout?.(() => {
-        bootRevealCanvas.style.display = 'none';
-        bootCursorCanvas.style.display = 'none';
-      }, 800);
+      window.setTimeout?.(() => { bootCursorCanvas.style.display = 'none'; }, 800);
     };
 
     const render = (now) => {
       if (completed) return;
       const elapsed = now - startedAt;
-      const delta = clamp(now - previousFrame, 8, 40);
-      previousFrame = now;
       cursorContext.clearRect(0, 0, width, height);
-      cursors.forEach((cursor) => drawSyntheticCursor(cursor, now, elapsed));
-      if (manualBox) {
-        revealRectangle(manualBox);
-        drawManualBox();
+      while (nextReveal < revealEvents.length && elapsed >= revealEvents[nextReveal].at) {
+        revealTarget(revealEvents[nextReveal].target);
+        nextReveal += 1;
       }
-      if (elapsed >= bootDuration) {
+      tracks.forEach((track) => drawTrack(track, now, elapsed));
+      drawManualBox();
+      if (elapsed >= finishAt) {
         finish();
         return;
       }
-      // Keep a steady frame budget while cursors are active; no timers or intervals are retained.
       frameId = requestAnimationFrame(render);
-      void delta;
     };
 
     const pointerDown = (event) => {
-      if (completed || !['mouse', 'pen', 'touch', ''].includes(event.pointerType || 'mouse')) return;
-      manualBox = {
-        start: { x: event.clientX, y: event.clientY },
-        current: { x: event.clientX, y: event.clientY }
-      };
-      revealRectangle(manualBox);
+      if (completed) return;
+      manualBox = { start: { x: event.clientX, y: event.clientY }, current: { x: event.clientX, y: event.clientY } };
+      revealTargetsInsideBox();
     };
     const pointerMove = (event) => {
       if (!manualBox || completed) return;
       manualBox.current = { x: event.clientX, y: event.clientY };
-      revealRectangle(manualBox);
+      revealTargetsInsideBox();
     };
     const pointerUp = () => {
       if (!manualBox || completed) return;
-      revealRectangle(manualBox);
+      revealTargetsInsideBox();
       manualBox = null;
     };
 
@@ -399,10 +411,10 @@
     window.addEventListener('pointerup', pointerUp, { passive: true });
     window.addEventListener('pointercancel', pointerUp, { passive: true });
     frameId = requestAnimationFrame(render);
-    window.setTimeout?.(finish, bootDuration + 900);
+    window.setTimeout?.(finish, finishAt + 1200);
   };
 
-  initBootReveal();
+  initSequentialReveal();
 
   const brushCanvas = document.querySelector('#brush-cursor');
   const initBrushCursor = () => {

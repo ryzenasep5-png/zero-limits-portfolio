@@ -1,4 +1,4 @@
-const CACHE = 'zero-limits-v3';
+const CACHE = 'zero-limits-v4';
 const ASSETS = [
   '/',
   '/index.html',
