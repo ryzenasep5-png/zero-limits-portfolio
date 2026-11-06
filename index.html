@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09070d">
+  <meta name="description" content="ZERO LIMITS — portfolio mobile-first untuk autonomous systems, AI engineering, dan creative technology.">
+  <meta property="og:title" content="ZERO LIMITS — Autonomous Systems Portfolio">
+  <meta property="og:description" content="Build beyond limits. Explore an independent AI engineer's systems, experiments, and flagship deployments.">
+  <meta property="og:type" content="website">
+  <title>ZERO LIMITS — Autonomous Systems Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+</head>
+<body>
+  <canvas id="particle-field" aria-hidden="true"></canvas>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header" data-header>
+    <a class="brand" href="#top" aria-label="ZERO LIMITS home">
+      <span class="brand-mark">0/</span>
+      <span class="brand-name">ZERO <em>LIMITS</em></span>
+    </a>
+    <nav class="primary-nav" id="primary-nav" aria-label="Navigasi utama">
+      <a href="#about">About</a>
+      <a href="#systems">Systems</a>
+      <a href="#deployments">Deployments</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Buka navigasi">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="hero section-wrap" id="home">
+      <div class="hero-word" aria-hidden="true">PORTFOLIO</div>
+      <div class="hero-kicker reveal">
+        <span class="status-dot"></span>
+        SYSTEM ARCHITECT <span class="slash">/</span> AUTONOMOUS OPERATOR
+      </div>
+      <div class="hero-grid">
+        <div class="hero-copy reveal">
+          <p class="micro-label">INITIATE DISPATCH <span>↗</span></p>
+          <h1><span>BUILD</span><span class="accent">BEYOND</span><span>LIMITS.</span></h1>
+          <p class="hero-intro">I design and deploy autonomous AI systems that operate 24/7 with persistent memory, multi-agent orchestration, and continuous self-evolution.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#deployments">Explore architecture <span>↗</span></a>
+            <a class="button button-ghost" href="#contact">Start a signal</a>
+          </div>
+          <div class="hero-metrics" aria-label="Key metrics">
+            <div><strong>478<span>+</span></strong><small>MCP TOOLS</small></div>
+            <div><strong>7</strong><small>LAYER CORE</small></div>
+            <div><strong>100<span>%</span></strong><small>OFFLINE-FIRST</small></div>
+          </div>
+        </div>
+
+        <div class="hero-visual reveal" aria-label="Abstract operator profile">
+          <div class="visual-orbit orbit-one"></div>
+          <div class="visual-orbit orbit-two"></div>
+          <div class="portrait-card">
+            <div class="portrait-grid"></div>
+            <div class="portrait-silhouette"><span></span></div>
+            <div class="portrait-scan"></div>
+            <div class="portrait-caption">SOVEREIGN SILICON <span>ACTIVE</span></div>
+          </div>
+          <div class="core-panel">
+            <div class="panel-top"><span>CORE STATUS</span><span class="live-pill">LIVE</span></div>
+            <div class="core-name">Autonomous<br><b>Core</b></div>
+            <div class="core-line"><i></i><span>memory / orchestration / signal</span></div>
+          </div>
+          <div class="floating-symbol symbol-a">+</div>
+          <div class="floating-symbol symbol-b">◇</div>
+        </div>
+      </div>
+      <a class="scroll-cue" href="#about"><span>01 / 05</span><i></i><span>SCROLL TO DECODE</span></a>
+    </section>
+
+    <section class="content-section section-wrap" id="about">
+      <div class="section-index reveal">01 / 05 <span></span></div>
+      <div class="section-heading reveal">
+        <p class="eyebrow">ENGINEER PROFILE</p>
+        <h2>Background <span>&amp; Philosophy</span></h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-copy reveal">
+          <p class="lead">The best systems do not simply respond. They observe, remember, decide, and become more capable with every cycle.</p>
+          <p>I build at the intersection of software engineering, AI operations, and visual systems. Every project starts with a question: how can a complex workflow become calmer, faster, and more intentional?</p>
+          <blockquote>“Design systems that stay useful when the original roadmap is obsolete.”</blockquote>
+        </div>
+        <div class="principles reveal">
+          <div class="principle"><span>01</span><div><b>Sovereign Silicon</b><small>Tools that remain understandable, portable, and under your control.</small></div></div>
+          <div class="principle"><span>02</span><div><b>Five-Principles Architecture</b><small>Small primitives, clear boundaries, measurable outcomes.</small></div></div>
+          <div class="principle"><span>03</span><div><b>Automatic Verification</b><small>Every autonomous action leaves a readable trace.</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section section-wrap" id="systems">
+      <div class="section-index reveal">02 / 05 <span></span></div>
+      <div class="section-heading reveal">
+        <p class="eyebrow">CAPABILITY MATRIX</p>
+        <h2>Systems that <span>think in layers.</span></h2>
+      </div>
+      <div class="system-grid">
+        <article class="system-card reveal"><span class="card-number">01</span><span class="card-icon">◈</span><h3>Agent Orchestration</h3><p>Route context to focused agents, keep state durable, and make every handoff observable.</p><a href="#terminal" data-command="orchestrate">Inspect module ↗</a></article>
+        <article class="system-card reveal"><span class="card-number">02</span><span class="card-icon">⌁</span><h3>Edge Intelligence</h3><p>Design low-latency workflows that keep working when networks, APIs, or assumptions fail.</p><a href="#terminal" data-command="edge">Inspect module ↗</a></article>
+        <article class="system-card reveal"><span class="card-number">03</span><span class="card-icon">△</span><h3>Security by Design</h3><p>Threat model inputs, constrain capabilities, and ship useful defaults instead of hidden risk.</p><a href="#terminal" data-command="security">Inspect module ↗</a></article>
+        <article class="system-card reveal"><span class="card-number">04</span><span class="card-icon">✦</span><h3>Creative Interfaces</h3><p>Turn dense data into calm, tactile interfaces that feel native on a small screen.</p><a href="#terminal" data-command="interface">Inspect module ↗</a></article>
+      </div>
+    </section>
+
+    <section class="content-section section-wrap deployments" id="deployments">
+      <div class="section-index reveal">03 / 05 <span></span></div>
+      <div class="section-heading reveal">
+        <p class="eyebrow">ARCHITECTURAL SHOWCASE</p>
+        <h2>Flagship <span>Deployments</span></h2>
+        <p class="section-note">Production-grade systems running 24/7 across silicon, blockchain mainnets, and creative endpoints.</p>
+      </div>
+      <div class="project-list">
+        <article class="project-card project-feature reveal">
+          <div class="project-top"><span class="project-type">CORE ECOSYSTEM</span><span class="project-state">ACTIVE ↗</span></div>
+          <h3>SAAI <span>/ 7-Layer Autonomous AI Ecosystem</span></h3>
+          <p>A persistent, self-evolving autonomous intelligence stack. 478 custom tools, cross-agent memory, and a verification loop that keeps the system honest.</p>
+          <div class="project-tags"><span>AI OPERATIONS</span><span>MEMORY</span><span>ORCHESTRATION</span></div>
+          <a class="project-link" href="#contact">Request a walkthrough <span>↗</span></a>
+        </article>
+        <article class="project-card reveal">
+          <div class="project-top"><span class="project-type">INTERFACE LAB</span><span class="project-state">SHIPPED ↗</span></div>
+          <h3>DISPATCH <span>/ Calm command surfaces</span></h3>
+          <p>A mobile-first control surface for turning a complex queue of work into one clear next action.</p>
+          <div class="project-tags"><span>MOBILE</span><span>UX SYSTEMS</span></div>
+          <a class="project-link" href="#contact">Open case study <span>↗</span></a>
+        </article>
+        <article class="project-card reveal">
+          <div class="project-top"><span class="project-type">EDGE LAB</span><span class="project-state">EXPERIMENTAL ↗</span></div>
+          <h3>GHOST NODE <span>/ Local-first automation</span></h3>
+          <p>Small, resilient automations that run close to the user and fail gracefully when the cloud disappears.</p>
+          <div class="project-tags"><span>LINUX</span><span>ANDROID</span><span>LOCAL</span></div>
+          <a class="project-link" href="#contact">See the lab notes <span>↗</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="terminal-section section-wrap" id="terminal">
+      <div class="terminal reveal">
+        <div class="terminal-bar"><div><i></i><i></i><i></i></div><span>zero-limits / dispatch.sh</span><span>v1.0.0</span></div>
+        <div class="terminal-body">
+          <p><span class="prompt">$</span> <span id="terminal-command">./zero-limits --status</span></p>
+          <pre id="terminal-output">INITIALISING CORE...\n[ok] memory layer online\n[ok] agent mesh connected\n[ok] verification loop armed\n\nReady for your signal.</pre>
+          <div class="terminal-input-row"><span class="prompt">$</span><input id="terminal-input" type="text" placeholder="type a command" autocomplete="off" aria-label="Terminal command"><button id="terminal-submit" type="button">RUN</button></div>
+          <div class="terminal-suggestions"><button type="button" data-terminal-command="status">status</button><button type="button" data-terminal-command="stack">stack</button><button type="button" data-terminal-command="connect">connect</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section contact-section section-wrap" id="contact">
+      <div class="section-index reveal">04 / 05 <span></span></div>
+      <div class="section-heading reveal">
+        <p class="eyebrow">OPEN CHANNEL</p>
+        <h2>Send a <span>signal.</span></h2>
+        <p class="section-note">Tell me what you are building, what is stuck, or what should exist next.</p>
+      </div>
+      <form class="contact-form reveal" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="success.html">
+        <input type="hidden" name="form-name" value="contact">
+        <p class="hidden-field"><label>Do not fill this out: <input name="bot-field"></label></p>
+        <label><span>YOUR NAME</span><input name="name" type="text" required placeholder="How should I call you?"></label>
+        <label><span>YOUR EMAIL</span><input name="email" type="email" required placeholder="hello@example.com"></label>
+        <label><span>THE BRIEF</span><textarea name="message" rows="4" required placeholder="Describe the system, product, or idea..."></textarea></label>
+        <button class="button button-primary" type="submit">Transmit message <span>↗</span></button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer section-wrap">
+    <div class="footer-brand"><span class="brand-mark">0/</span><span>ZERO LIMITS</span></div>
+    <div class="footer-meta"><span>BUILT FOR THE NEXT LOOP</span><span>© <span id="year"></span> ZERO LIMITS</span></div>
+  </footer>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>
